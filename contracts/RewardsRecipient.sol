@@ -8,5 +8,6 @@ contract RewardsRecipient {
         _;
     }
 
-    function notifyRewardAmount(uint256 rewardTokenIndex, uint256 amount) external;
+    function notifyRewardAmount(uint256 rewardTokenIndex, uint256 amount)
+        external;
 }

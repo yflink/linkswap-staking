@@ -22,9 +22,13 @@ contract StakingRewardsFactory is Ownable {
     address[] public stakingTokens;
 
     // rewards info by staking token
-    mapping(address => StakingRewardsInfo) public stakingRewardsInfoByStakingToken;
+    mapping(address => StakingRewardsInfo)
+        public stakingRewardsInfoByStakingToken;
 
-    constructor(address _yflToken, uint256 _stakingRewardsGenesis) public Ownable() {
+    constructor(address _yflToken, uint256 _stakingRewardsGenesis)
+        public
+        Ownable()
+    {
         require(_yflToken != address(0), "yflToken=0x0");
         require(_stakingRewardsGenesis >= block.timestamp, "genesis<timestamp");
         yflToken = _yflToken;
@@ -44,16 +48,23 @@ contract StakingRewardsFactory is Ownable {
     ) external onlyOwner {
         require(_stakingToken != address(0), "stakingToken=0x0");
         require(_stakingToken != yflToken, "stakingToken=yflToken");
-        require(_stakingToken != _extraRewardToken, "stakingToken=extraRewardToken");
+        require(
+            _stakingToken != _extraRewardToken,
+            "stakingToken=extraRewardToken"
+        );
         require(_extraRewardToken != yflToken, "extraRewardToken=yflToken");
-        require(_yflRewardAmount > 0 || _extraRewardTokenAmount > 0, "amounts=0");
+        require(
+            _yflRewardAmount > 0 || _extraRewardTokenAmount > 0,
+            "amounts=0"
+        );
         if (_extraRewardToken == address(0)) {
             require(_extraRewardTokenAmount == 0, "extraRewardTokenAmount!=0");
         } else {
             require(_extraRewardTokenAmount > 0, "extraRewardTokenAmount=0");
         }
         require(_rewardsDuration > 0, "rewardsDuration=0");
-        StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[_stakingToken];
+        StakingRewardsInfo storage info =
+            stakingRewardsInfoByStakingToken[_stakingToken];
         require(info.stakingRewards == address(0), "already deployed");
 
         info.stakingRewards = address(
@@ -87,7 +98,8 @@ contract StakingRewardsFactory is Ownable {
     function notifyRewardAmount(address _stakingToken) public {
         require(block.timestamp >= stakingRewardsGenesis, "timestamp<genesis");
 
-        StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[_stakingToken];
+        StakingRewardsInfo storage info =
+            stakingRewardsInfoByStakingToken[_stakingToken];
         require(info.stakingRewards != address(0), "not deployed");
 
         uint256 rewardAmount = info.yflRewardAmount;
@@ -104,14 +116,23 @@ contract StakingRewardsFactory is Ownable {
         if (extraRewardAmount > 0) {
             info.extraRewardTokenAmount = 0;
             require(
-                IERC20(info.extraRewardToken).transfer(info.stakingRewards, extraRewardAmount),
+                IERC20(info.extraRewardToken).transfer(
+                    info.stakingRewards,
+                    extraRewardAmount
+                ),
                 "transfer failed"
             );
         }
-        StakingRewards(info.stakingRewards).notifyRewardAmount(rewardAmount, extraRewardAmount);
+        StakingRewards(info.stakingRewards).notifyRewardAmount(
+            rewardAmount,
+            extraRewardAmount
+        );
     }
 
     function emergencyWithdraw(address _token) external onlyOwner {
-        IERC20(_token).transfer(msg.sender, IERC20(_token).balanceOf(address(this)));
+        IERC20(_token).transfer(
+            msg.sender,
+            IERC20(_token).balanceOf(address(this))
+        );
     }
 }

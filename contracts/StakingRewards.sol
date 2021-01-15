@@ -19,7 +19,11 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
     event RewardAdded(address indexed rewardToken, uint256 amount);
     event Staked(address indexed user, uint256 amount);
     event Unstaked(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, address indexed rewardToken, uint256 amount);
+    event RewardPaid(
+        address indexed user,
+        address indexed rewardToken,
+        uint256 amount
+    );
 
     /* ========== STATE VARIABLES ========== */
 
@@ -67,7 +71,8 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
 
     modifier updateReward(address account) {
         rewardPerTokenStored[0] = rewardPerToken(0);
-        if (address(rewardTokens[1]) != address(0)) rewardPerTokenStored[1] = rewardPerToken(1);
+        if (address(rewardTokens[1]) != address(0))
+            rewardPerTokenStored[1] = rewardPerToken(1);
         lastUpdateTime = lastTimeRewardApplicable();
         if (account != address(0)) {
             unclaimedRewards[0][account] = earned(account, 0);
@@ -88,7 +93,11 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
         return _balances[account];
     }
 
-    function getRewardForDuration(uint256 rewardTokenIndex) external view returns (uint256) {
+    function getRewardForDuration(uint256 rewardTokenIndex)
+        external
+        view
+        returns (uint256)
+    {
         return rewardRate[rewardTokenIndex].mul(rewardsDuration);
     }
 
@@ -96,7 +105,11 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
         return Math.min(block.timestamp, periodFinish);
     }
 
-    function rewardPerToken(uint256 rewardTokenIndex) public view returns (uint256) {
+    function rewardPerToken(uint256 rewardTokenIndex)
+        public
+        view
+        returns (uint256)
+    {
         if (_totalSupply == 0) {
             return rewardPerTokenStored[rewardTokenIndex];
         }
@@ -110,7 +123,11 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
             );
     }
 
-    function earned(address account, uint256 rewardTokenIndex) public view returns (uint256) {
+    function earned(address account, uint256 rewardTokenIndex)
+        public
+        view
+        returns (uint256)
+    {
         return
             _balances[account]
                 .mul(
@@ -147,7 +164,11 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
         emit Staked(msg.sender, amount);
     }
 
-    function stake(uint256 amount) external nonReentrant updateReward(msg.sender) {
+    function stake(uint256 amount)
+        external
+        nonReentrant
+        updateReward(msg.sender)
+    {
         _stake(amount);
     }
 
@@ -162,7 +183,11 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
     }
 
     // Unstake without claiming rewards. For emergency use if claiming rewards is failing.
-    function unstake(uint256 amount) external nonReentrant updateReward(msg.sender) {
+    function unstake(uint256 amount)
+        external
+        nonReentrant
+        updateReward(msg.sender)
+    {
         _unstake(amount);
     }
 
@@ -193,15 +218,26 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
     function _claimReward(uint256 rewardTokenIndex) private {
         uint256 rewardAmount = unclaimedRewards[rewardTokenIndex][msg.sender];
         if (rewardAmount > 0) {
-            uint256 rewardsBal = rewardTokens[rewardTokenIndex].balanceOf(address(this));
+            uint256 rewardsBal =
+                rewardTokens[rewardTokenIndex].balanceOf(address(this));
             if (rewardsBal == 0) return;
             // avoid paying more than total rewards balance
-            rewardAmount = rewardsBal < rewardAmount ? rewardsBal : rewardAmount;
-            unclaimedRewards[rewardTokenIndex][msg.sender] = unclaimedRewards[rewardTokenIndex][msg
-                .sender]
+            rewardAmount = rewardsBal < rewardAmount
+                ? rewardsBal
+                : rewardAmount;
+            unclaimedRewards[rewardTokenIndex][msg.sender] = unclaimedRewards[
+                rewardTokenIndex
+            ][msg.sender]
                 .sub(rewardAmount);
-            rewardTokens[rewardTokenIndex].safeTransfer(msg.sender, rewardAmount);
-            emit RewardPaid(msg.sender, address(rewardTokens[rewardTokenIndex]), rewardAmount);
+            rewardTokens[rewardTokenIndex].safeTransfer(
+                msg.sender,
+                rewardAmount
+            );
+            emit RewardPaid(
+                msg.sender,
+                address(rewardTokens[rewardTokenIndex]),
+                rewardAmount
+            );
         }
     }
 
@@ -214,11 +250,15 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
     {
         require(amount > 0 || extraAmount > 0, "zero amount");
         if (extraAmount > 0) {
-            require(address(rewardTokens[1]) != address(0), "extraRewardToken=0x0");
+            require(
+                address(rewardTokens[1]) != address(0),
+                "extraRewardToken=0x0"
+            );
         }
         if (block.timestamp >= periodFinish) {
             rewardRate[0] = amount.div(rewardsDuration);
-            if (extraAmount > 0) rewardRate[1] = extraAmount.div(rewardsDuration);
+            if (extraAmount > 0)
+                rewardRate[1] = extraAmount.div(rewardsDuration);
         } else {
             uint256 remaining = periodFinish.sub(block.timestamp);
             uint256 leftover = remaining.mul(rewardRate[0]);
@@ -234,7 +274,10 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
         // very high values of rewardRate in the earned and rewardsPerToken functions;
         // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
         uint256 balance = rewardTokens[0].balanceOf(address(this));
-        require(rewardRate[0] <= balance.div(rewardsDuration), "Provided reward too high");
+        require(
+            rewardRate[0] <= balance.div(rewardsDuration),
+            "Provided reward too high"
+        );
         if (extraAmount > 0) {
             balance = rewardTokens[1].balanceOf(address(this));
             require(
@@ -246,12 +289,16 @@ contract StakingRewards is IStakingRewards, RewardsRecipient, ReentrancyGuard {
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp.add(rewardsDuration);
         emit RewardAdded(address(rewardTokens[0]), amount);
-        if (extraAmount > 0) emit RewardAdded(address(rewardTokens[1]), extraAmount);
+        if (extraAmount > 0)
+            emit RewardAdded(address(rewardTokens[1]), extraAmount);
     }
 
     function emergencyWithdraw(address _token) external {
         require(msg.sender == owner, "!owner");
-        require(_token != address(stakingToken), "cannot withdraw staking token");
+        require(
+            _token != address(stakingToken),
+            "cannot withdraw staking token"
+        );
         IERC20(_token).transfer(owner, IERC20(_token).balanceOf(address(this)));
     }
 }
